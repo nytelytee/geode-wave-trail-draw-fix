@@ -109,6 +109,10 @@ class $modify(WTDFHardStreak, HardStreak) {
   // them until i trial-and-errored into something that kind of works but not completely
   // people who actually know how to generate proper offset polylines: please tell me what i am missing
   void fixPoints(std::vector<CCPoint>& trailPath, float offset, std::vector<CCPoint>& points, std::vector<bool>& labels, std::vector<CCPoint>& otherPoints) {
+    // vectors might not be the same size
+    if (points.size() != labels.size() || points.size() < 2) return;
+    if (otherPoints.size() != points.size()) return;
+
     for (int i = 0; i < labels.size(); i++) {
       CCPoint nextSegmentP1, nextSegmentP2, prevSegmentP1, prevSegmentP2;
       bool nextFinished = false, prevFinished = false;
