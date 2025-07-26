@@ -3,7 +3,7 @@
 #include <constants.hpp>
 #include <globals.hpp>
 
-static void HookedHardStreak::onModify(auto& self) {
+void HookedHardStreak::onModify(auto& self) {
   // override TrailFix if the user has it installed
   (void) self.setHookPriority("HardStreak::updateStroke", 99999998);
 }
@@ -100,7 +100,7 @@ void HookedHardStreak::updateStroke(float) {
     std::tie(lastPoints, lastLabels) = utilities::createOffset(trailPath, lastOffset, relativeFactor);
     std::tie(previousPoints, previousLabels, previousOffset) = {firstPoints, firstLabels, firstOffset};
     totalWeight = unit.parts[0].weight;
-    for (int i = 1; i < unit.parts.size() + 1; i++) {
+    for (size_t i = 1; i < unit.parts.size() + 1; i++) {
       CCNode* drawer = getChild(this, drawerIndex);
       float newOffset = (i == unit.parts.size()) ? lastOffset : (firstOffset + totalWeight*oneWidth);
       utilities::fixPoints(trailPath, previousOffset, previousPoints, previousLabels, lastPoints);

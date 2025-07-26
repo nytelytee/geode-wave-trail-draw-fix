@@ -60,7 +60,6 @@ namespace utilities {
       if (!previousPoint) {
         currentPoint -= (*nextPoint - currentPoint).normalize()*extensionLength;
       } else if (!nextPoint) {
-        CCPoint direction = (currentPoint - *previousPoint).normalize();
         float length = previousPoint->getDistance(currentPoint);
         currentPoint += (currentPoint - *previousPoint).normalize() * ((length > extensionLength + 5) ? -5 : extensionLength - length);
       }
@@ -87,7 +86,7 @@ namespace utilities {
   // them until i trial-and-errored into something that kind of works but not completely
   // people who actually know how to generate proper offset polylines: please tell me what i am missing
   void fixPoints(std::vector<CCPoint>& trailPath, float offset, std::vector<CCPoint>& points, std::vector<bool>& labels, std::vector<CCPoint>& otherPoints) {
-    for (int i = 0; i < labels.size(); i++) {
+    for (size_t i = 0; i < labels.size(); i++) {
       CCPoint nextSegmentP1, nextSegmentP2, prevSegmentP1, prevSegmentP2;
       bool nextFinished = false, prevFinished = false;
 
@@ -113,24 +112,24 @@ namespace utilities {
         prevSegmentP1 = points[i+2];
         prevSegmentP2 = offsetPoint({}, trailPath[i+1], trailPath[i+2], offset);
       }
-      for (int j = 2; j < points.size() + 1; j++) {
+      for (size_t j = 2; j < points.size() + 1; j++) {
         if (i+j >= points.size() && !nextFinished) {
           nextFinished = true;
           std::optional<CCPoint> intersection;
           intersection = getLineSegmentIntersection(points.back(), otherPoints.back(), nextSegmentP1, nextSegmentP2);
           if (intersection) {
-            for (int k = i; k < points.size(); k++) points[k] = *intersection;
-            for (int k = i; k < labels.size(); k++) labels[k] = true;
+            for (size_t k = i; k < points.size(); k++) points[k] = *intersection;
+            for (size_t k = i; k < labels.size(); k++) labels[k] = true;
             break;
           }
         }
-        if (i+1-j < 0 && !prevFinished) {
+        if (i+1 < j /*i+1-j < 0*/ && !prevFinished) {
           prevFinished = true;
           std::optional<CCPoint> intersection;
           intersection = getLineSegmentIntersection(points[0], otherPoints[0], prevSegmentP1, prevSegmentP2);
           if (intersection) {
-            for (int k = 0; k < i+2; k++) points[k] = *intersection;
-            for (int k = 0; k < i+1; k++) labels[k] = true;
+            for (size_t k = 0; k < i+2; k++) points[k] = *intersection;
+            for (size_t k = 0; k < i+1; k++) labels[k] = true;
             break;
           }
         }
@@ -138,8 +137,8 @@ namespace utilities {
           std::optional<CCPoint> intersection;
           intersection = getLineSegmentIntersection(points[i-1+j], points[i+j], nextSegmentP1, nextSegmentP2);
           if (intersection) {
-            for (int k = i; k < i+j; k++) points[k] = *intersection;
-            for (int k = i; k < i+j-1; k++) labels[k] = true;
+            for (size_t k = i; k < i+j; k++) points[k] = *intersection;
+            for (size_t k = i; k < i+j-1; k++) labels[k] = true;
             break;
           }
         }
@@ -147,8 +146,8 @@ namespace utilities {
           std::optional<CCPoint> intersection;
           intersection = getLineSegmentIntersection(points[i+1-j], points[i+2-j], prevSegmentP1, prevSegmentP2);
           if (intersection) {
-            for (int k = i+2-j; k < i+2; k++) points[k] = *intersection;
-            for (int k = i+2-j; k < i+1; k++) labels[k] = true;
+            for (size_t k = i+2-j; k < i+2; k++) points[k] = *intersection;
+            for (size_t k = i+2-j; k < i+1; k++) labels[k] = true;
             break;
           }
         }
