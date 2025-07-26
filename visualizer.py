@@ -135,8 +135,8 @@ def fix_points(trail_path, offset, points, labels, other_points):
                     list(points[-1]), list(other_points[-1]), *next_segment
                 )
                 if intersection is not None:
-                    points[i:i+j] = j*[intersection]
-                    labels[i:i+j-1] = (j-1)*[True]
+                    points[i:min(i+j, len(points))] = j*[intersection]
+                    labels[i:min(i+j-1, len(labels))] = (j-1)*[True]
                     break
             if i+1-j < 0:
                 prev_finished = True
@@ -144,8 +144,8 @@ def fix_points(trail_path, offset, points, labels, other_points):
                     list(points[0]), list(other_points[0]), *prev_segment
                 )
                 if intersection is not None:
-                    points[i+2-j:i+2] = j*[intersection]
-                    labels[i+2-j:i+2] = j*[True]
+                    points[max(0, i+2-j):i+2] = j*[intersection]
+                    labels[max(0, i+2-j):i+1] = (j-1)*[True]
                     break
             if not next_finished:
                 intersection = get_line_segment_intersection(
@@ -161,7 +161,7 @@ def fix_points(trail_path, offset, points, labels, other_points):
                 )
                 if intersection is not None:
                     points[i+2-j:i+2] = j*[intersection]
-                    labels[i+2-j:i+2] = j*[True]
+                    labels[i+2-j:i+1] = (j-1)*[True]
                     break
             if next_finished and prev_finished:
                 # in the actual mod, this will just be a break, not a throw
@@ -191,6 +191,37 @@ def draw_trail(ax, offset1, offset2, color, triangulate=True):
 
 
 paths = [
+
+    np.array([
+    [-230.15625, -18.408691,],
+    [-201.25, 39.313477,],
+    [-175.78125, -11.544434,],
+    [-175.46875, -10.92041,],
+    [-140.9375, -79.875,],
+    [-115.625, -29.329102,],
+    [-114.21875, -32.137207,],
+    [-80, 36.19336,],
+    [-51.40625, -20.904785,],
+    [-20.46875, 40.873535,],
+    [0, 0,],
+    ]),
+
+    np.array([
+    [-214.53125, -44.783203,],
+    [-194.21875, -4.2216797,],
+    [-173.59375, -4.2216797,],
+    [-173.59375, -5.11084,],
+    [-131.875, -5.11084,],
+    [-126.875, -15.095215,],
+    [-103.4375, 31.706543,],
+    [-102.65625, 30.146484,],
+    [float('inf'), 30.88916,],
+    [-83.4375, 30.88916,],
+    [-47.5, 30.88916,],
+    [-32.03125, 0,],
+    [0, 0,],
+    ]),
+
     np.array([[0., 0.], [20., 20.]]),
     np.array([[0., 0.], [0.1, 0.1]]),
     np.array([
@@ -294,7 +325,7 @@ def main():
     for trail_path in paths:
         fig, ax = plt.subplots()
         ax.set_aspect('equal')
-        width = 2*3.8424535
+        width = 2*1.1256438
         offset_pos, offset_pos_labels = create_offset(trail_path, width/2)
         offset_neg, offset_neg_labels = create_offset(trail_path, -width/2)
         fix_points(

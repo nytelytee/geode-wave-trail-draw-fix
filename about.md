@@ -15,3 +15,5 @@ With TrailFix
 With the Wave Trail Draw Fix
 
 Replaces TrailFix, as it completely reimplements the trail drawing algorithm.
+
+Additionally implements a fairly customizable interface to control how the trail is drawn. For now it is undocumented, until a future mod that uses it gets released.
