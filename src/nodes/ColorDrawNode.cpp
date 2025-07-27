@@ -109,15 +109,6 @@ void ColorDrawNode::drawTriangle(CCPoint const& p1, CCPoint const& p2, CCPoint c
   m_bDirty = true;
 }
 
-unsigned int* getNumberOfDraws() {
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-    static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update offsets");
-    return reinterpret_cast<unsigned int*>(geode::base::get() + GEODE_ARM_MAC(0x8b0f60) GEODE_INTEL_MAC(0x98bf30) GEODE_IOS(0x8791d0));
-#else
-    return &g_uNumberOfDraws;
-#endif
-}
-
 void ColorDrawNode::draw() {
   // clear the leftover trail before drawing it again
   clear();
