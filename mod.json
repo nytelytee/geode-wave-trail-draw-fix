@@ -1,6 +1,6 @@
 {
   "geode": "4.7.0",
-  "gd": {"android": "2.2074", "win": "2.2074"},
+  "gd": {"android": "2.2074", "win": "2.2074", "mac": "2.2074", "ios": "2.2074"},
   "version": "v1.1.0",
   "id": "nytelyte.wave_trail_draw_fix",
   "name": "Wave Trail Draw Fix",
@@ -9,6 +9,7 @@
   "repository": "https://github.com/nytelytee/geode-wave-trail-draw-fix",
   "resources": {"files": ["resources/examples/with.png", "resources/examples/without.png", "resources/examples/with-trailfix.png"]},
   "tags": ["offline", "bugfix", "enhancement"],
+  "api": {"include": ["include/*.hpp"]},
   "incompatibilities": [{"id": "sabe.trailfix", "version": "*", "importance": "conflicting"}],
   "dependencies": [{"id": "nytelyte.wave_trail_drag_fix", "version": ">=v1.0.0", "importance": "suggested"}]
 }
