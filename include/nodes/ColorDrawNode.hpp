@@ -22,8 +22,8 @@ public:
   bool m_skipIfSolid = false;
   bool m_skipIfNonSolid = false;
   
-  _ccBlendFunc m_solidColorBlendFunc = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
-  _ccBlendFunc m_nonSolidColorBlendFunc = {GL_SRC_ALPHA, GL_ONE};
+  std::optional<_ccBlendFunc> m_solidColorBlendFunc = std::nullopt;
+  std::optional<_ccBlendFunc> m_nonSolidColorBlendFunc = std::nullopt;
 
   GLenum m_nonSolidColorBlendEq = GL_FUNC_ADD;
   GLenum m_solidColorBlendEq = GL_FUNC_ADD;

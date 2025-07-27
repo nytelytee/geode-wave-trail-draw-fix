@@ -112,5 +112,3 @@ $on_mod(Loaded) {
   }
 }
 
-bool solidWaveTrailIsOn = true;
-

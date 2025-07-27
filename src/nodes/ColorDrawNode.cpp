@@ -41,7 +41,9 @@ ColorDrawNode* ColorDrawNode::create(matjson::Value& data) {
       if (!blendEnumMap.contains(*value[0].asString().ok()) || !blendEnumMap.contains(*value[1].asString().ok())) return Err("invalid blending function");\
       return Ok(_ccBlendFunc{blendEnumMap.at(*value[0].asString().ok()), blendEnumMap.at(*value[1].asString().ok())});\
     }).isOkAnd([this](_ccBlendFunc value){ member = value; return true; })\
-  ) {} else if (data.contains(option)) return false
+  ) {} else if(data.get(option).isOkAnd([](matjson::Value& value){return value.isNull();})) {\
+    member = std::nullopt;\
+  } else if (data.contains(option)) return false
     
 #define SETUP_BLENDING_EQUATION(option, member) if(\
     data.get<std::string>(option)\
@@ -113,7 +115,10 @@ void ColorDrawNode::draw() {
   // clear the leftover trail before drawing it again
   clear();
 
-  bool isSolid = static_cast<HardStreak*>(getParent())->m_isSolid;
+  HardStreak* parent = static_cast<HardStreak*>(getParent());
+  bool isSolid = parent->m_isSolid;
+  _ccBlendFunc parentBlending = parent->getBlendFunc();
+
   if (isSolid && m_skipIfSolid) return;
   if (!isSolid && m_skipIfNonSolid) return;
   
@@ -146,10 +151,10 @@ void ColorDrawNode::draw() {
 
   // our custom blending function setup, this is why reimplementing CCDrawNode::draw was necessary
   if (isSolid) {
-    glBlendFuncSeparate(m_solidColorBlendFunc.src, m_solidColorBlendFunc.dst, GL_ZERO, GL_ONE);
+    glBlendFuncSeparate(m_solidColorBlendFunc.value_or(parentBlending).src, m_solidColorBlendFunc.value_or(parentBlending).dst, GL_ZERO, GL_ONE);
     glBlendEquationSeparate(m_solidColorBlendEq, GL_FUNC_ADD);
   } else {
-    glBlendFuncSeparate(m_nonSolidColorBlendFunc.src, m_nonSolidColorBlendFunc.dst, GL_ZERO, GL_ONE);
+    glBlendFuncSeparate(m_nonSolidColorBlendFunc.value_or(parentBlending).src, m_nonSolidColorBlendFunc.value_or(parentBlending).dst, GL_ZERO, GL_ONE);
     glBlendEquationSeparate(m_nonSolidColorBlendEq, GL_FUNC_ADD);
   }
   
@@ -170,8 +175,7 @@ void ColorDrawNode::draw() {
   CHECK_GL_ERROR_DEBUG();
   
   // reset blending after finishing the draw
-  glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  ccGLBlendResetToCache();
 }
 
 $execute {
