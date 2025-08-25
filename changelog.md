@@ -1,3 +1,6 @@
+# v1.1.2
+- macOS & iOS support (thank you, hiimjasmine00)
+
 # v1.1.1
 - fix improper handling of blending, most notably causing artifacts in the editor
 
