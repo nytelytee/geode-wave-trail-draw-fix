@@ -35,14 +35,14 @@ const std::map<std::string, GLenum> blendEqMap = {
   {"GL_FUNC_ADD", GL_FUNC_ADD},
   {"GL_FUNC_SUBTRACT", GL_FUNC_SUBTRACT},
   {"GL_FUNC_REVERSE_SUBTRACT", GL_FUNC_REVERSE_SUBTRACT},
-  {"GL_MIN", GL_MIN},
-  {"GL_MAX", GL_MAX},
+  {"GL_MIN", 0x8007},
+  {"GL_MAX", 0x8008},
 
   {"add", GL_FUNC_ADD},
   {"subtract", GL_FUNC_SUBTRACT},
   {"reverse-subtract", GL_FUNC_REVERSE_SUBTRACT},
-  {"min", GL_MIN},
-  {"max", GL_MAX},
+  {"min", 0x8007},
+  {"max", 0x8008},
 };
 
 const float epsilon = 10e-6f;
