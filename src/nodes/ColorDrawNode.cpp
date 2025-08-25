@@ -171,7 +171,12 @@ void ColorDrawNode::draw() {
   glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, sizeof(ccV2F_C4B_T2F), (GLvoid *)offsetof(ccV2F_C4B_T2F, texCoords));
   glDrawArrays(GL_TRIANGLES, 0, m_nBufferCount);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
+  static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update macOS and iOS offsets");
+  *reinterpret_cast<unsigned int*>(geode::base::get() + GEODE_ARM_MAC(0x8b0f60) GEODE_INTEL_MAC(0x98bf30) GEODE_IOS(0x8791d0)) += 1;
+#else
   CC_INCREMENT_GL_DRAWS(1);
+#endif
   CHECK_GL_ERROR_DEBUG();
   
   // reset blending after finishing the draw

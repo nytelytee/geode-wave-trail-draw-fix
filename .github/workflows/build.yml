@@ -15,6 +15,13 @@ jobs:
         - name: Windows
           os: windows-latest
 
+        - name: macOS
+          os: macOS-latest
+
+        - name: iOS
+          os: macOS-latest
+          target: iOS
+
         - name: Android32
           os: ubuntu-latest
           target: Android32
@@ -32,7 +39,7 @@ jobs:
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
         with:
-          bindings: nytelytee/bindings
+          bindings: geode-sdk/bindings
           bindings-ref: main
           combine: true
           target: ${{ matrix.config.target }}
