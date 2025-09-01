@@ -1,3 +1,6 @@
+# v1.1.3
+- simplify mod scope (to prevent issues with shaders)
+
 # v1.1.2
 - macOS & iOS support (thank you, hiimjasmine00)
 

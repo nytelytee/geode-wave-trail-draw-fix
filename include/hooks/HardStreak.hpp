@@ -7,9 +7,7 @@ using namespace geode::prelude;
 
 struct HookedHardStreak : Modify<HookedHardStreak, HardStreak> {
   struct Fields {
-    std::vector<utilities::Unit> m_configuration;
-    // if this is true, the configuration is invalid, and the trail will not get drawn
-    bool m_broken = false;
+    std::vector<utilities::Part> m_configuration;
   };
 
 	static void onModify(auto& self);
@@ -19,13 +17,11 @@ struct HookedHardStreak : Modify<HookedHardStreak, HardStreak> {
   
   void clearAllChildren();
 
-  void setConfiguration(std::vector<utilities::Unit>&);
+  void setConfiguration(std::vector<utilities::Part>&);
 
-  $override
-  void stopStroke();
+  void drawTriangle(CCPoint const&, CCPoint const&, CCPoint const&, ccColor4B color);
 
   $override 
 	void updateStroke(float);
 
 };
-

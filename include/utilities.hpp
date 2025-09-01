@@ -24,30 +24,29 @@ namespace utilities {
   // people who actually know how to generate proper offset polylines: please tell me what i am missing
   void fixPoints(std::vector<CCPoint>& trailPath, float offset, std::vector<CCPoint>& points, std::vector<bool>& labels, std::vector<CCPoint>& otherPoints);
 
-  struct Part {
-    std::string type;
-    matjson::Value data;
-    float weight;
+  struct Subpart {
+    std::optional<ccColor3B> color;
+    float weight, opacity;
+    bool solidOnly, nonSolidOnly;
   };
 
-  struct Unit {
+  struct Part {
     float start, end, startOffset, endOffset;
     std::optional<float> pulseOverride, sizeOverride;
-    std::vector<Part> parts;
+    std::vector<Subpart> subparts;
   };
 
 }
 
 
 template <>
+struct matjson::Serialize<utilities::Subpart> {
+  static Result<utilities::Subpart> fromJson(const matjson::Value& value);
+  static matjson::Value toJson(const utilities::Subpart& subpart);
+};
+
+template <>
 struct matjson::Serialize<utilities::Part> {
   static Result<utilities::Part> fromJson(const matjson::Value& value);
   static matjson::Value toJson(const utilities::Part& part);
 };
-
-template <>
-struct matjson::Serialize<utilities::Unit> {
-  static Result<utilities::Unit> fromJson(const matjson::Value& value);
-  static matjson::Value toJson(const utilities::Unit& unit);
-};
-

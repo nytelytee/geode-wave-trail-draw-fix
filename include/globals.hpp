@@ -2,4 +2,4 @@
 
 #include <utilities.hpp>
 
-extern std::vector<utilities::Unit> configuration;
+extern std::vector<utilities::Part> configuration;

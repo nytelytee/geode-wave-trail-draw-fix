@@ -46,7 +46,7 @@ namespace utilities {
     points.reserve(trailPath.size());
     std::vector<bool> labels;
     labels.reserve(trailPath.size()-1);
-    for (int i = 0; i < trailPath.size(); i++) {
+    for (size_t i = 0; i < trailPath.size(); i++) {
       std::optional<CCPoint> previousPoint;
       CCPoint currentPoint = trailPath[i];
       std::optional<CCPoint> nextPoint;
@@ -157,44 +157,60 @@ namespace utilities {
   }
 }
 
-Result<utilities::Part> matjson::Serialize<utilities::Part>::fromJson(const matjson::Value& value) {
-  
-  if (!value.contains("type")) return Err("has to have a type");
-  Result<std::string> t = value.get<std::string>("type");
-  if (!t.isOk()) return Err("type has to be a string");
+Result<utilities::Subpart> matjson::Serialize<utilities::Subpart>::fromJson(const matjson::Value& value) {
 
-  Result<const matjson::Value&> d = value.get("data");
-  if (d.isOk() && !(*d).isObject()) return Err("data has to be an object");
-  
+  std::optional<ccColor3B> color{};
+  if (
+    value.get<std::string>("color")
+    .andThen([](std::string colorString){ return cc3bFromHexString(colorString); })
+    .isOkAnd([&color](ccColor3B colorValue){ color = colorValue; return true; })
+  ) {} else if (value.get("color").isOkAnd([](matjson::Value colorValue){ return colorValue.isNull(); })) {
+    color = std::nullopt;
+  } else if(value.contains("color")) return Err("invalid color");
+
   Result<float> w = value.get<float>("weight");
   if (!w.isOk() && w.unwrapErr() == "not a number") return Err("weight has to be a number");
 
-  std::string type = *t;
-  matjson::Value data = d.unwrapOr(matjson::Value::object());
   float weight = w.unwrapOr(1.f);
 
   if (weight <= 0) return Err("weights must be positive");
   
-  return Ok(utilities::Part{.type=type, .data=data, .weight=weight});
+  Result<float> o = value.get<float>("opacity");
+  if (!o.isOk() && o.unwrapErr() == "not a number") return Err("opacity has to be a number");
+
+  float opacity = o.unwrapOr(1.f);
+
+  if (weight <= 0) return Err("weights must be positive");
+  
+  Result<bool> so = value.get<bool>("solid-only");
+  if (!so.isOk() && value.contains("solid-only")) return Err("solid-only must be a boolean.");
+  bool solidOnly = so.unwrapOr(false);
+  
+  Result<bool> nso = value.get<bool>("nonsolid-only");
+  if (!nso.isOk() && value.contains("nonsolid-only")) return Err("nonsolid-only must be a boolean.");
+  bool nonSolidOnly = nso.unwrapOr(false);
+
+  if (solidOnly && nonSolidOnly) return Err("solid-only and nonsolid-only are mutually exclusive.");
+  
+  return Ok(utilities::Subpart{.color=color, .weight=weight, .opacity=opacity, .solidOnly=solidOnly, .nonSolidOnly=nonSolidOnly});
 
 }
 
-matjson::Value matjson::Serialize<utilities::Part>::toJson(const utilities::Part& part) {
+matjson::Value matjson::Serialize<utilities::Subpart>::toJson(const utilities::Subpart& subpart) {
   return matjson::makeObject({
-      {"type", part.type},
-      {"data", part.data},
-      {"weight", part.weight},
+      {"color", subpart.color},
+      {"weight", subpart.weight},
   });
 }
 
-Result<utilities::Unit> matjson::Serialize<utilities::Unit>::fromJson(const matjson::Value& value) {
+Result<utilities::Part> matjson::Serialize<utilities::Part>::fromJson(const matjson::Value& value) {
 
-  Result<std::vector<utilities::Part>> p = value.get<std::vector<utilities::Part>>("parts");
+  Result<std::vector<utilities::Subpart>> p = value.get<std::vector<utilities::Subpart>>("subparts");
   if (!p.isOk()) {
-    if (value.contains("parts")) return Err("invalid parts: " /*+ *p.err()*/);
-    return Err("must have parts");
+    if (value.contains("subparts")) return Err("invalid subparts");
+    return Err("must have subparts");
   }
-  if ((*p).size() == 0) return Err("need to have at least 1 part");
+  if ((*p).size() == 0) return Err("need to have at least 1 subpart");
   
   Result<float> s = value.get<float>("start");
   if (!s.isOk() && *s.err() == "not a number") return Err("start has to be a number");
@@ -214,30 +230,29 @@ Result<utilities::Unit> matjson::Serialize<utilities::Unit>::fromJson(const matj
   Result<std::optional<float>> szo = value.get<std::optional<float>>("sizeOverride");
   if (!szo.isOk() && *szo.err() == "not a number") return Err("sizeOverride has to be a number or null");
 
-
   float start = s.unwrapOr(-1.f);
   float end = e.unwrapOr(1.f);
   float startOffset = so.unwrapOr(0.f);
   float endOffset = eo.unwrapOr(0.f);
   std::optional<float> pulseOverride = plo.unwrapOr(std::nullopt);
   std::optional<float> sizeOverride = szo.unwrapOr(std::nullopt);
-  std::vector<utilities::Part> parts = *p;
+  std::vector<utilities::Subpart> subparts = *p;
   
-  return Ok(utilities::Unit{
+  return Ok(utilities::Part{
     .start=start, .end=end, .startOffset=startOffset, .endOffset=endOffset,
-    .pulseOverride=pulseOverride, .sizeOverride=sizeOverride, .parts=parts
+    .pulseOverride=pulseOverride, .sizeOverride=sizeOverride, .subparts=subparts
   });
 
 }
 
-matjson::Value matjson::Serialize<utilities::Unit>::toJson(const utilities::Unit& unit) {
+matjson::Value matjson::Serialize<utilities::Part>::toJson(const utilities::Part& part) {
   return matjson::makeObject({
-      {"start", unit.start},
-      {"end", unit.end},
-      {"startOffset", unit.startOffset},
-      {"endOffset", unit.endOffset},
-      {"pulseOverride", unit.pulseOverride},
-      {"sizeOverride", unit.sizeOverride},
-      {"part", unit.parts},
+      {"start", part.start},
+      {"end", part.end},
+      {"startOffset", part.startOffset},
+      {"endOffset", part.endOffset},
+      {"pulseOverride", part.pulseOverride},
+      {"sizeOverride", part.sizeOverride},
+      {"subparts", part.subparts},
   });
 }

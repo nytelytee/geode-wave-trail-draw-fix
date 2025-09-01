@@ -12,11 +12,17 @@ project(WaveTrailDrawFix VERSION 1.1.0)
 
 add_library(${PROJECT_NAME} SHARED
   src/hooks/HardStreak.cpp
-  src/nodes/ColorDrawNode.cpp
   src/utilities.cpp
   src/main.cpp
+  src/api.cpp
 )
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND WIN32)
+  target_sources(${PROJECT_NAME} PRIVATE src/debug-windows.cpp)
+endif()
+
 include_directories(${PROJECT_NAME} PUBLIC include)
+
+add_compile_definitions(NDEBUG _NDEBUG)
 
 if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
