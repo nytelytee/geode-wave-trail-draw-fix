@@ -12,6 +12,7 @@ using namespace geode::prelude;
 //      e.g. the inner white part of the wave trail is 65% opacity (0.65f), the outer part is 100% opacity (1.f)
 class ColorDrawNode : public CCDrawNode {
 public:
+  HardStreak* m_parentStreak = nullptr;
   // nullopt is player color
   std::optional<_ccColor3B> m_solidColor = std::nullopt;
   std::optional<_ccColor3B> m_nonSolidColor = std::nullopt;
@@ -36,7 +37,10 @@ public:
   // disadvantage: some mod menus hook drawPolygon in order to implement solid wave trail (formerly, Eclipse did this), so solid wave trail will be broken
   // for mod creators: for a proper implementation of solid wave trail, that works with both this mod and with vanilla, have a look at Eclipse's implementation
   void drawTriangle(CCPoint const&, CCPoint const&, CCPoint const&, _ccColor4B);
+  
+  void drawTrailPart(std::vector<CCPoint>&, std::vector<CCPoint>&);
 
+  using CCDrawNode::init;
   bool init(matjson::Value&);
   void draw() override;
 

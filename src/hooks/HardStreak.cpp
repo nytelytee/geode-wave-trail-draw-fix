@@ -2,6 +2,8 @@
 #include <utilities.hpp>
 #include <constants.hpp>
 #include <globals.hpp>
+#include <api/api.hpp>
+#include <Geode/modify/CCDrawNode.hpp>
 
 void HookedHardStreak::onModify(auto& self) {
   // override TrailFix if the user has it installed
@@ -10,26 +12,25 @@ void HookedHardStreak::onModify(auto& self) {
 
 void HookedHardStreak::setConfiguration(std::vector<utilities::Unit>& config) {
   m_fields->m_configuration = config;
+  m_fields->m_drawers = CCArray::create();
   removeAllChildren();
-  unsigned int length = 0;
+  unsigned length = 0;
   for (utilities::Unit& unit : m_fields->m_configuration) {
     if (unit.parts.empty()) {
         m_fields->m_broken = true;
         break;
     }
     for (utilities::Part& part : unit.parts) {
-      length += 1;
       // this event should add its draw node to the provided hardstreak, and only add one
       // if it does not add anything (potentially mistyped, no event fired) or adds multiple (potentially multiple events under the same id defined)
       // the trail is marked as "broken", and it does not get drawn
-      geode::DispatchEvent<HardStreak*, matjson::Value>(part.type, this, part.data).post();
+      nytelyte::wave_trail_draw_fix::AddTrailPart::Event(part.type, this, part.data).post();
+      length += 1; 
 
-      if (length != getChildrenCount() || part.weight <= 0) {
+      if (getChildrenCount() != length || part.weight <= 0) {
         m_fields->m_broken = true;
         break;
       }
-      getChild(this, -1)->setUserObject("offsetPath1"_spr, ObjWrapper<std::vector<CCPoint>>::create({}));
-      getChild(this, -1)->setUserObject("offsetPath2"_spr, ObjWrapper<std::vector<CCPoint>>::create({}));
     }
     // invalid configuration; remove everything, and refuse to draw the trail inside updateStroke
     if (m_fields->m_broken) {
@@ -46,10 +47,14 @@ bool HookedHardStreak::init() {
 }
 
 void HookedHardStreak::clearAllChildren() {
-  CCArrayExt<CCNode*> children = getChildren();
-  for (CCNode* node : children) {
-    static_cast<ObjWrapper<std::vector<CCPoint>>*>(node->getUserObject("offsetPath1"_spr))->getValue().clear();
-    static_cast<ObjWrapper<std::vector<CCPoint>>*>(node->getUserObject("offsetPath2"_spr))->getValue().clear();
+  for (CCNode* drawer : CCArrayExt<CCNode>(getChildren())) {
+    // call child's clear
+    auto funcWrapper = static_cast<nytelyte::wave_trail_draw_fix::ClearWrapper*>(
+     drawer->getUserObject("clear-function"_spr)
+    );
+
+    if (funcWrapper)
+      std::invoke(funcWrapper->getValue());
   }
 }
 
@@ -58,7 +63,7 @@ void HookedHardStreak::stopStroke() {
   clearAllChildren();
 }
 
-void HookedHardStreak::updateStroke(float) {
+void HookedHardStreak::updateStroke(float dt) {
   clear();  // just in case
   clearAllChildren();
   if (!m_drawStreak) return;
@@ -80,35 +85,58 @@ void HookedHardStreak::updateStroke(float) {
   }
   if (trailPath.empty() || trailPath.back() != (m_currentPoint - position)) trailPath.push_back(m_currentPoint - position);
   
-  // generate offsets, fix them, assign them to the drawers
+  // generate offsets, fix them, send them to the drawers to draw
   // TODO: maybe make the third argument to createOffset customizable
   int drawerIndex = 0;
   for (utilities::Unit& unit : m_fields->m_configuration) {
+
     float waveSize = unit.sizeOverride.value_or(m_waveSize);
     float pulseSize = unit.pulseOverride.value_or(m_pulseSize);
     float relativeFactor = 3*waveSize*pulseSize;
+
     float totalWidth = (unit.endOffset + unit.end*relativeFactor) - (unit.startOffset + unit.start*relativeFactor);
-    float totalWeight = 0; for (utilities::Part& part : unit.parts) totalWeight += part.weight;
+    float totalWeight = 0;
+    for (utilities::Part& part : unit.parts)
+      totalWeight += part.weight;
     float oneWidth = totalWidth/totalWeight;
+
     float firstOffset = m_isFlipped ? (unit.endOffset + unit.end*relativeFactor) : (unit.startOffset + unit.start*relativeFactor);
     float lastOffset = m_isFlipped ? (unit.startOffset + unit.start*relativeFactor) : (unit.endOffset + unit.end*relativeFactor);
     if (m_isFlipped) oneWidth *= -1;
-    std::vector<CCPoint> previousPoints, firstPoints, lastPoints;
-    std::vector<bool> previousLabels, firstLabels, lastLabels;
-    float previousOffset;
+
+    std::vector<CCPoint> previousPoints, nextPoints, firstPoints, lastPoints;
+    std::vector<bool> previousLabels, nextLabels, firstLabels, lastLabels;
+    float previousOffset, nextOffset;
+
     std::tie(firstPoints, firstLabels) = utilities::createOffset(trailPath, firstOffset, relativeFactor);
     std::tie(lastPoints, lastLabels) = utilities::createOffset(trailPath, lastOffset, relativeFactor);
     std::tie(previousPoints, previousLabels, previousOffset) = {firstPoints, firstLabels, firstOffset};
+
+    utilities::fixPoints(trailPath, previousOffset, previousPoints, previousLabels, lastPoints);
+
     totalWeight = unit.parts[0].weight;
     for (size_t i = 1; i < unit.parts.size() + 1; i++) {
-      CCNode* drawer = getChild(this, drawerIndex);
-      float newOffset = (i == unit.parts.size()) ? lastOffset : (firstOffset + totalWeight*oneWidth);
-      utilities::fixPoints(trailPath, previousOffset, previousPoints, previousLabels, lastPoints);
-      static_cast<ObjWrapper<std::vector<CCPoint>>*>(drawer->getUserObject("offsetPath1"_spr))->getValue() = previousPoints;
-      std::tie(previousPoints, previousLabels) = utilities::createOffset(trailPath, newOffset, relativeFactor);
-      previousOffset = newOffset;
-      utilities::fixPoints(trailPath, previousOffset, previousPoints, previousLabels, firstPoints);
-      static_cast<ObjWrapper<std::vector<CCPoint>>*>(drawer->getUserObject("offsetPath2"_spr))->getValue() = previousPoints;
+      CCNode* drawer = getChildByIndex(drawerIndex);
+      if (!drawer) return;
+
+      nextOffset = (i == unit.parts.size()) ? lastOffset : (firstOffset + totalWeight*oneWidth);
+      std::tie(nextPoints, nextLabels) = utilities::createOffset(trailPath, nextOffset, relativeFactor);
+      utilities::fixPoints(trailPath, nextOffset, nextPoints, nextLabels, firstPoints);
+      
+      // call child's drawTrailPart
+      auto funcWrapper = static_cast<nytelyte::wave_trail_draw_fix::DrawTrailPartWrapper*>(
+        drawer->getUserObject("draw-trail-part-function"_spr)
+      );
+
+      if (funcWrapper)
+        std::invoke(
+          funcWrapper->getValue(),
+          previousPoints, nextPoints
+        );
+
+      previousOffset = nextOffset;
+      std::tie(previousPoints, previousLabels) = {nextPoints, nextLabels};
+
       drawerIndex += 1;
       if (i == unit.parts.size()) break;
       totalWeight += unit.parts[i].weight;

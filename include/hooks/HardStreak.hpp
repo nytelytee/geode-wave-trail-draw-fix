@@ -7,6 +7,7 @@ using namespace geode::prelude;
 
 struct HookedHardStreak : Modify<HookedHardStreak, HardStreak> {
   struct Fields {
+    Ref<CCArray> m_drawers = nullptr;
     std::vector<utilities::Unit> m_configuration;
     // if this is true, the configuration is invalid, and the trail will not get drawn
     bool m_broken = false;
@@ -27,5 +28,6 @@ struct HookedHardStreak : Modify<HookedHardStreak, HardStreak> {
   $override 
 	void updateStroke(float);
 
-};
+  void listenBackToForeground(CCObject*) {}
 
+};

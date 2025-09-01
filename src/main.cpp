@@ -75,7 +75,7 @@ matjson::Value defaultConfiguration = matjson::parse(R"(
           "type": "nytelyte.wave_trail_draw_fix/color",
           "data": {
               "color": "#ffffff",
-              "opacity-factor": 0.65,
+              "opacity-factor": 1.0,
               "skip-if-solid": true
           }
       }]
