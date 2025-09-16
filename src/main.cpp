@@ -15,8 +15,7 @@ matjson::Value defaultConfiguration = matjson::parse(R"(
       "start": -0.3333333,
       "end": 0.3333333,
       "opacity": 0.65,
-      "nonsolid-only": true,
-      "subparts": [{"color": "#ffffff"}]
+      "subparts": [{"color": "#ffffff", "nonsolid-only": true}]
     }
   ]
 )").unwrap();

@@ -1,3 +1,6 @@
+# v1.1.4
+- fix solid wave trail being wrong due to invalid configuration
+
 # v1.1.3
 - simplify mod scope (to prevent issues with shaders)
 
