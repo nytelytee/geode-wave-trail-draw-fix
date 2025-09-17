@@ -200,6 +200,9 @@ matjson::Value matjson::Serialize<utilities::Subpart>::toJson(const utilities::S
   return matjson::makeObject({
       {"color", subpart.color},
       {"weight", subpart.weight},
+      {"opacity", subpart.opacity},
+      {"solid-only", subpart.solidOnly},
+      {"nonsolid-only", subpart.nonSolidOnly}
   });
 }
 
