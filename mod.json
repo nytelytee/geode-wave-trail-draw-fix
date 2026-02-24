@@ -16,5 +16,7 @@
   },
   "resources": {"files": ["resources/examples/with.png", "resources/examples/without.png", "resources/examples/with-trailfix.png"]},
   "tags": ["offline", "bugfix", "enhancement"],
-  "incompatibilities": [{"id": "sabe.trailfix", "version": "*", "importance": "conflicting"}]
+  "incompatibilities": {
+    "sabe.trailfix": "*"
+  }
 }
