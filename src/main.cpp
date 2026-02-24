@@ -41,8 +41,8 @@ $on_mod(Loaded) {
   */
   Mod* mod = Mod::get();
   if (mod->hasSavedValue("_custom_configuration")) {
-    SetConfigurationEvent("set-configuration"_spr, mod->getSavedValue<matjson::Value>("_custom_configuration")).post();
+    SetConfigurationEvent("set-configuration"_spr).send(mod->getSavedValue<matjson::Value>("_custom_configuration"));
   } else {
-    SetConfigurationEvent("set-configuration"_spr, defaultConfiguration).post();
+    SetConfigurationEvent("set-configuration"_spr).send(defaultConfiguration);
   }
 }
