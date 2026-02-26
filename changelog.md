@@ -1,5 +1,5 @@
-# v1.1.6
-- port to geode v5
+# v1.2.0
+- update to 2.2081
 
 # v1.1.5
 - fix opacity of inner trail part being wrong due to invalid configuration
