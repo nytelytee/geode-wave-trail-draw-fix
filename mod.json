@@ -9,5 +9,5 @@
   "links": {"source": "https://github.com/nytelytee/geode-wave-trail-draw-fix"},
   "resources": {"files": ["resources/examples/with.png", "resources/examples/without.png", "resources/examples/with-trailfix.png"]},
   "tags": ["offline", "bugfix", "enhancement"],
-  "incompatibilities": {"sabe.trailfix": {"version": "*", "breaking": false}}
+  "incompatibilities": {"sabe.trailfix": {"version": ">=1.0.0", "breaking": false}}
 }
