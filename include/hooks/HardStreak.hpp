@@ -10,7 +10,10 @@ struct HookedHardStreak : Modify<HookedHardStreak, HardStreak> {
     std::vector<utilities::Part> m_configuration;
   };
 
-	static void onModify(auto& self);
+  static void onModify(auto& self) {
+    // override TrailFix if the user has it installed
+    (void) self.setHookPriority("HardStreak::updateStroke", 99999998);
+  };
    
   $override
   bool init();

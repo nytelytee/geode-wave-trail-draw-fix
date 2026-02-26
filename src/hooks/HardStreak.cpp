@@ -3,11 +3,6 @@
 #include <constants.hpp>
 #include <globals.hpp>
 
-void HookedHardStreak::onModify(auto& self) {
-  // override TrailFix if the user has it installed
-  (void) self.setHookPriority("HardStreak::updateStroke", 99999998);
-}
-
 void HookedHardStreak::drawTriangle(
   CCPoint const& p1, CCPoint const& p2, CCPoint const& p3,
   ccColor4B color

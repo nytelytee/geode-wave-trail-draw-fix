@@ -11,50 +11,49 @@ using namespace geode::prelude;
 $execute {
 
   // set the global configuration, silently ignore config parsing errors
-  new EventListener(+[](matjson::Value config) {
+  SetConfigurationEvent("set-configuration"_spr).listen([](matjson::Value config) {
       Result<std::vector<utilities::Part>> newConfigResult = config.as<std::vector<utilities::Part>>();
       if (newConfigResult.isOk()) configuration = *newConfigResult.ok();
       return ListenerResult::Stop;
-  }, SetConfigurationFilter("set-configuration"_spr));
+  }).leak();
 
   // set the global configuration, put config parsing errors into second argument
-  new EventListener(+[](matjson::Value config, std::optional<std::string>* error) {
+  SetConfigurationEventResult("set-configuration"_spr).listen([](matjson::Value config, std::optional<std::string>* error) {
       Result<std::vector<utilities::Part>> newConfigResult = config.as<std::vector<utilities::Part>>();
       if (newConfigResult.isOk()) configuration = *newConfigResult.ok();
       *error = newConfigResult.err();
       return ListenerResult::Stop;
-  }, SetConfigurationFilterResult("set-configuration"_spr));
+  }).leak();
 
   // get the global configuration
-  new EventListener(+[](matjson::Value* config) {
+  GetSpecificConfigurationEvent("get-configuration"_spr).listen([](HardStreak* streak, matjson::Value* config) {
       *config = configuration;
       return ListenerResult::Stop;
-  }, GetConfigurationFilter("get-configuration"_spr));
+  }).leak();
 
   // get the configuration of a specific HardStreak
-  new EventListener(+[](HardStreak* streak, matjson::Value* config) {
+  GetSpecificConfigurationEvent("get-configuration"_spr).listen([](HardStreak* streak, matjson::Value* config) {
       *config = static_cast<HookedHardStreak*>(streak)->m_fields->m_configuration;
       return ListenerResult::Stop;
-  }, GetSpecificConfigurationFilter("get-configuration"_spr));
+  }).leak();
 
   // these are named differently from set-configuration, as they actually update a streak's configuration explicitly
   // HardStreaks store their configurations after they're set, so subsequent updates to the global configuration will
   // not affect already existing HardStreaks, to explicitly change those configurations, you call these events
   
   // update the configuration of a specific HardStreak, silently ignore config parsing errors
-  new EventListener(+[](HardStreak* streak, matjson::Value config) {
+  UpdateConfigurationEvent("update-configuration"_spr).listen([](HardStreak* streak, matjson::Value config) {
       Result<std::vector<utilities::Part>> newConfigResult = config.as<std::vector<utilities::Part>>();
       if (newConfigResult.isOk()) static_cast<HookedHardStreak*>(streak)->setConfiguration(*newConfigResult);
       return ListenerResult::Stop;
-  }, UpdateConfigurationFilter("update-configuration"_spr));
+  }).leak();
 
   // update the configuration of a specific HardStreak, put config parsing errors into second argument
-  new EventListener(+[](HardStreak* streak, matjson::Value config, std::optional<std::string>* error) {
+  UpdateConfigurationEventResult("update-configuration"_spr).listen([](HardStreak* streak, matjson::Value config, std::optional<std::string>* error) {
       Result<std::vector<utilities::Part>> newConfigResult = config.as<std::vector<utilities::Part>>();
       if (newConfigResult.isOk()) static_cast<HookedHardStreak*>(streak)->setConfiguration(*newConfigResult);
       *error = newConfigResult.err();
       return ListenerResult::Stop;
-  }, UpdateConfigurationFilterResult("update-configuration"_spr));
-
+  }).leak();
 };
 
